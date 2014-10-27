@@ -8,7 +8,7 @@ module Bot
         puts "\nExit."
         exit
       end
-      Client.new.start
+      Duplicator.new.start
     end
   end
 end
