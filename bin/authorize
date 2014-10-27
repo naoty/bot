@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+
+require "oauth"
+require "dotenv"
+
+Dotenv.load
+
+consumer = OAuth::Consumer.new(ENV["CONSUMER_KEY"], ENV["CONSUMER_SECRET"], site: "https://api.twitter.com")
+request_token = consumer.get_request_token
+
+puts "Please access this URL: #{request_token.authorize_url}"
+print "Enter your PIN code: "
+pin = gets.chomp
+
+access_token = request_token.get_access_token(oauth_verifier: pin)
+puts "access token: #{access_token.token}"
+puts "access token secret: #{access_token.secret}"
+
