@@ -8,7 +8,7 @@ module Bot
         puts "\nExit."
         exit
       end
-      Duplicator.new.start
+      Observer.new.start
     end
   end
 end

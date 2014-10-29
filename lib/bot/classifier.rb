@@ -12,10 +12,15 @@ module Bot
     end
 
     def train(text, category)
+      puts "Train: #{text} -> #{category}"
       features = parse(text)
       features.each do |feature|
         increment_item_count_in_feature_and_category(feature, category)
         increment_item_count_in_category(category)
+        if category == :favorite
+          decrement_item_count_in_feature_and_category(feature, :normal)
+          decrement_item_count_in_category(:normal)
+        end
       end
     end
 
@@ -41,6 +46,19 @@ module Bot
     def increment_item_count_in_category(category)
       @item_count_in_category[category] ||= 0
       @item_count_in_category[category] += 1
+    end
+
+    def decrement_item_count_in_feature_and_category(feature, category)
+      return if @item_count_in_feature_and_category[feature].nil?
+      return if @item_count_in_feature_and_category[feature][category].nil?
+      return if @item_count_in_feature_and_category[feature][category] < 1
+      @item_count_in_feature_and_category[feature][category] -= 1
+    end
+
+    def decrement_item_count_in_category(category)
+      return if @item_count_in_category[category].nil?
+      return if @item_count_in_category[category] < 1
+      @item_count_in_category[category] -= 1
     end
 
     def calculate_probability(text, category)

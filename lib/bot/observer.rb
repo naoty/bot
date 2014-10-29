@@ -1,3 +1,4 @@
+require "resque"
 require "twitter"
 
 module Bot
@@ -9,7 +10,6 @@ module Bot
         config.access_token = ENV["ACCESS_TOKEN"]
         config.access_token_secret = ENV["ACCESS_TOKEN_SECRET"]
       end
-      @classifier = Classifier.new
     end
 
     def start
@@ -17,11 +17,11 @@ module Bot
         case object
         when Twitter::Tweet
           tweet_text = object.text
-          @classifier.train(tweet_text, :normal)
+          Resque.enqueue(TrainingJob, tweet_text, :normal)
         when Twitter::Streaming::Event
           if object.name == :favorite
             tweet_text = object.target_object.text
-            @classifier.train(tweet_text, :favorite)
+            Resque.enqueue(TrainingJob, tweet_text, :favorite)
           end
         end
       end
