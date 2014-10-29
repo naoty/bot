@@ -26,6 +26,7 @@ module Bot
           text = object.text
           case @classifier.classify(screen_name, text)
           when :favorite
+            puts "[FAVORITE] #{screen_name}: #{text}"
             @actor.favorite(object)
           end
         end

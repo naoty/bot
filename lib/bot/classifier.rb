@@ -22,8 +22,8 @@ module Bot
     end
 
     def classify(screen_name, text)
-      favorite_probability = calculate_probability(text, :favorite)
-      normal_probability = calculate_probability(text, :normal)
+      favorite_probability = calculate_probability(screen_name, text, :favorite)
+      normal_probability = calculate_probability(screen_name, text, :normal)
       (favorite_probability > normal_probability * CATEGORY_THRESHOLD) ? :favorite : :normal
     end
 
@@ -59,18 +59,18 @@ module Bot
     def decrement_item_count_in_feature_and_category(feature, category)
       return unless @redis.exists(feature)
       return unless @redis.hexists(feature, category)
-      return unless @redis.hget(feature, category).to_i < 1
+      return if @redis.hget(feature, category).to_i < 1
       @redis.hdecrby(feature, category, 1)
     end
 
     def decrement_item_count_in_category(category)
       return unless @redis.exists(category)
-      return unless @redis.get(category).to_i < 1
+      return if @redis.get(category).to_i < 1
       @redis.decr(category)
     end
 
-    def calculate_probability(text, category)
-      features = parse(text)
+    def calculate_probability(screen_name, text, category)
+      features = parse(text) + [screen_name]
       cumulated_probability = features.reduce(1) do |probability, feature|
         probability *= calculate_feature_probability(feature, category)
       end
@@ -81,7 +81,7 @@ module Bot
     def calculate_feature_probability(feature, category)
       return 0 unless @redis.exists(feature)
       return 0 unless @redis.hexists(feature, category)
-      return 0 unless @redis.get(category).to_i == 0
+      return 0 if @redis.get(category).to_i == 0
       @redis.hget(feature, category).to_f / @redis.get(category).to_i
     end
 

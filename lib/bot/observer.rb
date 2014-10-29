@@ -21,7 +21,7 @@ module Bot
           Resque.enqueue(TrainingJob, screen_name, tweet_text, :normal)
         when Twitter::Streaming::Event
           if object.name == :favorite
-            screen_name = object.user.screen_name
+            screen_name = object.target_object.user.screen_name
             tweet_text = object.target_object.text
             Resque.enqueue(TrainingJob, screen_name, tweet_text, :favorite)
           end

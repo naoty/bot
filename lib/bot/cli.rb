@@ -24,5 +24,10 @@ module Bot
   class CLI < Thor
     desc "start", "Start bot"
     subcommand "start", Start
+
+    desc "train", "Train bot"
+    def train
+      Trainer.new.start
+    end
   end
 end
