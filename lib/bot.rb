@@ -1,4 +1,5 @@
 require "bot/classifier"
 require "bot/cli"
+require "bot/emulator"
 require "bot/observer"
 require "bot/training_job"
