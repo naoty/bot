@@ -16,12 +16,14 @@ module Bot
       @client.user do |object|
         case object
         when Twitter::Tweet
+          screen_name = object.user.screen_name
           tweet_text = object.text
-          Resque.enqueue(TrainingJob, tweet_text, :normal)
+          Resque.enqueue(TrainingJob, screen_name, tweet_text, :normal)
         when Twitter::Streaming::Event
           if object.name == :favorite
+            screen_name = object.user.screen_name
             tweet_text = object.target_object.text
-            Resque.enqueue(TrainingJob, tweet_text, :favorite)
+            Resque.enqueue(TrainingJob, screen_name, tweet_text, :favorite)
           end
         end
       end

@@ -3,8 +3,8 @@ module Bot
     @queue = :training
     @classifier = Classifier.new
 
-    def self.perform(text, category)
-      @classifier.train(text, category)
+    def self.perform(screen_name, text, category)
+      @classifier.train(screen_name, text, category)
     end
   end
 end

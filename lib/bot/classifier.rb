@@ -12,19 +12,16 @@ module Bot
       @redis = Redis.new
     end
 
-    def train(text, category)
+    def train(screen_name, text, category)
+      puts "[TRAIN] #{screen_name}: #{text} => #{category}"
       features = parse(text)
       features.each do |feature|
-        increment_item_count_in_feature_and_category(feature, category)
-        increment_item_count_in_category(category)
-        if category == :favorite
-          decrement_item_count_in_feature_and_category(feature, :normal)
-          decrement_item_count_in_category(:normal)
-        end
+        train_by_feature_and_category(feature, category)
       end
+      train_by_feature_and_category(screen_name, category)
     end
 
-    def classify(text)
+    def classify(screen_name, text)
       favorite_probability = calculate_probability(text, :favorite)
       normal_probability = calculate_probability(text, :normal)
       (favorite_probability > normal_probability * CATEGORY_THRESHOLD) ? :favorite : :normal
@@ -34,7 +31,17 @@ module Bot
 
     def parse(text)
       nodes = @tagger.parse(text)
-      nodes.mincost_path.map { |node| node.word.surface }.uniq
+      words = nodes.mincost_path.map(&:word).uniq
+      words.select { |word| word.left.text =~ /名詞/ }.map(&:surface)
+    end
+
+    def train_by_feature_and_category(feature, category)
+      increment_item_count_in_feature_and_category(feature, category)
+      increment_item_count_in_category(category)
+      if category == :favorite
+        decrement_item_count_in_feature_and_category(feature, :normal)
+        decrement_item_count_in_category(:normal)
+      end
     end
 
     def increment_item_count_in_feature_and_category(feature, category)
