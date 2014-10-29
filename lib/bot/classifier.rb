@@ -1,18 +1,18 @@
 require "okura/serializer"
+require "redis"
 
 module Bot
   class Classifier
+    CATEGORIES = %i(normal favorite).freeze
     CATEGORY_THRESHOLD = 3
 
     def initialize
       dictionary_path = File.expand_path("../../assets/okura-dic", __dir__)
       @tagger = Okura::Serializer::FormatInfo.create_tagger(dictionary_path)
-      @item_count_in_feature_and_category = {}
-      @item_count_in_category = {}
+      @redis = Redis.new
     end
 
     def train(text, category)
-      puts "Train: #{text} -> #{category}"
       features = parse(text)
       features.each do |feature|
         increment_item_count_in_feature_and_category(feature, category)
@@ -26,8 +26,8 @@ module Bot
 
     def classify(text)
       favorite_probability = calculate_probability(text, :favorite)
-      not_favorite_probability = calculate_probability(text, :not_favorite)
-      (favorite_probability > not_favorite_probability * CATEGORY_THRESHOLD) ? :favorite : :not_favorite
+      normal_probability = calculate_probability(text, :normal)
+      (favorite_probability > normal_probability * CATEGORY_THRESHOLD) ? :favorite : :normal
     end
 
     private
@@ -38,27 +38,28 @@ module Bot
     end
 
     def increment_item_count_in_feature_and_category(feature, category)
-      @item_count_in_feature_and_category[feature] ||= {}
-      @item_count_in_feature_and_category[feature][category] ||= 0
-      @item_count_in_feature_and_category[feature][category] += 1
+      if !@redis.exists(feature) || !@redis.hexists(feature, category)
+        @redis.hset(feature, category, 0)
+      end
+      @redis.hincrby(feature, category, 1)
     end
 
     def increment_item_count_in_category(category)
-      @item_count_in_category[category] ||= 0
-      @item_count_in_category[category] += 1
+      @redis.set(category, 0) unless @redis.exists(category)
+      @redis.incr(category)
     end
 
     def decrement_item_count_in_feature_and_category(feature, category)
-      return if @item_count_in_feature_and_category[feature].nil?
-      return if @item_count_in_feature_and_category[feature][category].nil?
-      return if @item_count_in_feature_and_category[feature][category] < 1
-      @item_count_in_feature_and_category[feature][category] -= 1
+      return unless @redis.exists(feature)
+      return unless @redis.hexists(feature, category)
+      return unless @redis.hget(feature, category).to_i < 1
+      @redis.hdecrby(feature, category, 1)
     end
 
     def decrement_item_count_in_category(category)
-      return if @item_count_in_category[category].nil?
-      return if @item_count_in_category[category] < 1
-      @item_count_in_category[category] -= 1
+      return unless @redis.exists(category)
+      return unless @redis.get(category).to_i < 1
+      @redis.decr(category)
     end
 
     def calculate_probability(text, category)
@@ -71,19 +72,20 @@ module Bot
     end
 
     def calculate_feature_probability(feature, category)
-      return 0 if @item_count_in_feature_and_category[feature].nil?
-      return 0 if @item_count_in_feature_and_category[feature][category].nil?
-      return 0 if @item_count_in_category[category] == 0
-
-      @item_count_in_feature_and_category[feature][category].to_f / @item_count_in_category[category]
+      return 0 unless @redis.exists(feature)
+      return 0 unless @redis.hexists(feature, category)
+      return 0 unless @redis.get(category).to_i == 0
+      @redis.hget(feature, category).to_f / @redis.get(category).to_i
     end
 
     def calculate_category_probability(category)
-      @item_count_in_category[category].to_f / total_feature_count
+      @redis.get(category).to_f / total_feature_count
     end
 
     def total_feature_count
-      @item_count_in_category.values.inject(&:+)
+      CATEGORIES.inject(0) do |count, category|
+        count += @redis.get(category).to_i
+      end
     end
   end
 end

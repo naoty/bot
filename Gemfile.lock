@@ -67,6 +67,7 @@ DEPENDENCIES
   oauth (~> 0.4.7)
   okura (~> 0.0.1)
   rake (~> 10.3.2)
+  redis (~> 3.1.0)
   resque (~> 1.25.2)
   thor (~> 0.19.1)
   twitter (~> 5.11.0)
