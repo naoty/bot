@@ -13,7 +13,6 @@ module Bot
     end
 
     def train(screen_name, text, category)
-      puts "[TRAIN] #{screen_name}: #{text} => #{category}"
       features = parse(text)
       features.each do |feature|
         train_by_feature_and_category(feature, category)

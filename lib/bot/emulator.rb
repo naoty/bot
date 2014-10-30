@@ -16,6 +16,7 @@ module Bot
         config.access_token_secret = ENV["ACCESS_TOKEN_SECRET"]
       end
       @classifier = Classifier.new
+      @notifier = Notifier.new
     end
 
     def start
@@ -26,7 +27,7 @@ module Bot
           text = object.text
           case @classifier.classify(screen_name, text)
           when :favorite
-            puts "[FAVORITE] #{screen_name}: #{text}"
+            @notifier.notify(title: "Favorite", message: "#{screen_name}: #{text}")
             @actor.favorite(object)
           end
         end
