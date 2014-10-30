@@ -10,9 +10,11 @@ module Bot
         config.access_token = ENV["TARGET_ACCESS_TOKEN"]
         config.access_token_secret = ENV["TARGET_ACCESS_TOKEN_SECRET"]
       end
+      @notifier = Notifier.new
     end
 
     def start
+      @notifier.notify(title: "Observer", message: "start")
       @client.user do |object|
         case object
         when Twitter::Tweet

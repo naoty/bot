@@ -20,6 +20,7 @@ module Bot
     end
 
     def start
+      @notifier.notify(title: "Emulator", message: "start")
       @watcher.user do |object|
         case object
         when Twitter::Tweet
