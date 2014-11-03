@@ -10,9 +10,15 @@ module Bot
           config.access_token = ENV["BOT_ACCESS_TOKEN"]
           config.access_token_secret = ENV["BOT_ACCESS_TOKEN_SECRET"]
         end
+        @notifier = Notifier.new
+      end
+
+      def tweet(text)
+        @notifier.notify(title: "Bot::Actuator::Bot#tweet", message: text)
       end
 
       def favorite(tweet)
+        @notifier.notify(title: "Bot::Actuator::Bot#favorite", message: "#{screen_name} #{text}")
         @client.favorite(tweet)
       end
     end

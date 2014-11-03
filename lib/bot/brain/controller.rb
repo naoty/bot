@@ -5,15 +5,17 @@ module Bot
   module Brain
     class Controller
       def initialize
+        @biorythm = Biorythm.new
         @bot = Actuator::Bot.new
         @classifier = Classifier.new
-        @notifier = Notifier.new
+        @memory = Memory.new
       end
 
-      def control_human_input(object)
+      def control_human_input(user_id, object)
         case object
         when Twitter::Tweet
           control_human_timeline(object)
+          control_human_tweet(object) if user_id == object.target_object.user.id
         when Twitter::Streaming::Event
           control_human_favorite(object) if object.name == :favorite
         end
@@ -34,6 +36,11 @@ module Bot
         Resque.enqueue(TrainingJob, screen_name, tweet_text, :normal)
       end
 
+      def control_human_tweet(tweet)
+        @biorythm.train(tweet.created_at)
+        @memory.save(tweet.id, tweet.text, tweet.created_at)
+      end
+
       def control_human_favorite(tweet)
         screen_name = tweet.target_object.user.screen_name
         tweet_text = tweet.target_object.text
@@ -45,7 +52,6 @@ module Bot
         text = tweet.text
         case @classifier.classify(screen_name, text)
         when :favorite
-          @notifier.notify(title: "Favorite", message: "#{screen_name}: #{text}")
           @bot.favorite(tweet)
         end
       end

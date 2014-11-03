@@ -6,20 +6,20 @@ module Bot
       class Sensor < Thor
         desc "human", "Activate human sensor"
         def human
-          Bot::Sensor::Human.new.activate
           trap(:INT) do
             puts "\nExit."
             exit
           end
+          Bot::Sensor::Human.new.activate
         end
 
         desc "bot", "Activate bot sensor"
         def bot
-          Bot::Sensor::Bot.new.activate
           trap(:INT) do
             puts "\nExit."
             exit
           end
+          Bot::Sensor::Bot.new.activate
         end
       end
     end
@@ -28,9 +28,13 @@ module Bot
       desc "sensor", "Activate sensors"
       subcommand "sensor", Subcommand::Sensor
 
-      desc "trainer", "Activate trainer"
-      def trainer
-        Trainer.new.activate
+      desc "biorythm", "Activate biorythm"
+      def biorythm
+        trap(:INT) do
+          puts "\nExit."
+          exit
+        end
+        Brain::Biorythm.new.activate
       end
     end
   end
