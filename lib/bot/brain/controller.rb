@@ -15,7 +15,7 @@ module Bot
         case object
         when Twitter::Tweet
           control_human_timeline(object)
-          control_human_tweet(object) if user_id == object.target_object.user.id
+          control_human_tweet(object) if user_id == object.user.id
         when Twitter::Streaming::Event
           control_human_favorite(object) if object.name == :favorite
         end

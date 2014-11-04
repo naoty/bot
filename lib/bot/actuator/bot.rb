@@ -18,7 +18,8 @@ module Bot
       end
 
       def favorite(tweet)
-        @notifier.notify(title: "Bot::Actuator::Bot#favorite", message: "#{screen_name} #{text}")
+        message = "#{tweet.user.screen_name}: #{tweet.text}"
+        @notifier.notify(title: "Bot::Actuator::Bot#favorite", message: message)
         @client.favorite(tweet)
       end
     end
