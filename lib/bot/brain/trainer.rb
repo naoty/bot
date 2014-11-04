@@ -23,6 +23,8 @@ module Bot
         @biorythm = Biorythm.new
         @memory = Memory.new
 
+        @biorythm.setup_training
+
         # NOTE: User timeline API returns only up to 3,200 tweets
         options = { count: 200 }
         16.times do

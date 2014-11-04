@@ -45,28 +45,36 @@ module Bot
       end
 
       def increment_item_count_in_feature_and_category(feature, category)
-        if !@redis.exists(feature) || !@redis.hexists(feature, category)
-          @redis.hset(feature, category, 0)
+        key = "bot:features:#{feature}"
+        field = "bot:categories:#{category}"
+
+        if !@redis.exists(key) || !@redis.hexists(key, field)
+          @redis.hset(key, field, 0)
         end
-        @redis.hincrby(feature, category, 1)
+        @redis.hincrby(key, field, 1)
       end
 
       def increment_item_count_in_category(category)
-        @redis.set(category, 0) unless @redis.exists(category)
-        @redis.incr(category)
+        key = "bot:categories:#{category}"
+        @redis.set(key, 0) unless @redis.exists(key)
+        @redis.incr(key)
       end
 
       def decrement_item_count_in_feature_and_category(feature, category)
-        return unless @redis.exists(feature)
-        return unless @redis.hexists(feature, category)
-        return if @redis.hget(feature, category).to_i < 1
-        @redis.hdecrby(feature, category, 1)
+        key = "bot:features:#{feature}"
+        field = "bot:categories:#{category}"
+
+        return unless @redis.exists(key)
+        return unless @redis.hexists(key, field)
+        return if @redis.hget(key, field).to_i < 1
+        @redis.hdecrby(key, field, 1)
       end
 
       def decrement_item_count_in_category(category)
-        return unless @redis.exists(category)
-        return if @redis.get(category).to_i < 1
-        @redis.decr(category)
+        key = "bot:categories:#{category}"
+        return unless @redis.exists(key)
+        return if @redis.get(key).to_i < 1
+        @redis.decr(key)
       end
 
       def calculate_probability(screen_name, text, category)
@@ -79,19 +87,24 @@ module Bot
       end
 
       def calculate_feature_probability(feature, category)
-        return 0 unless @redis.exists(feature)
-        return 0 unless @redis.hexists(feature, category)
-        return 0 if @redis.get(category).to_i == 0
-        @redis.hget(feature, category).to_f / @redis.get(category).to_i
+        features_key = "bot:features:#{feature}"
+        categories_key = "bot:categories:#{category}"
+
+        return 0 unless @redis.exists(features_key)
+        return 0 unless @redis.hexists(features_key, categories_key)
+        return 0 if @redis.get(categories_key).to_i == 0
+        @redis.hget(features_key, categories_key).to_f / @redis.get(categories_key).to_i
       end
 
       def calculate_category_probability(category)
-        @redis.get(category).to_f / total_feature_count
+        key = "bot:categories:#{category}"
+        @redis.get(key).to_f / total_feature_count
       end
 
       def total_feature_count
         CATEGORIES.inject(0) do |count, category|
-          count += @redis.get(category).to_i
+          key = "bot:categories:#{category}"
+          count += @redis.get(key).to_i
         end
       end
     end
