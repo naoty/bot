@@ -1,6 +1,7 @@
 source "https://rubygems.org"
 
 gem "foreman", "~> 0.75.0"
+gem "mysql2", "~> 0.3.16"
 gem "oauth", "~> 0.4.7"
 gem "okura", "~> 0.0.1"
 gem "pushover", "~> 1.0.4"

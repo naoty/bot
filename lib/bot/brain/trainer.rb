@@ -21,7 +21,7 @@ module Bot
 
       def train_biorythm
         @biorythm = Biorythm.new
-        @memory = Memory.new
+        @corpus = Corpus.new
 
         @biorythm.setup_training
 
@@ -31,7 +31,7 @@ module Bot
           tweets = @client.user_timeline(options)
           tweets.each do |tweet|
             @biorythm.train(tweet.created_at)
-            @memory.save(tweet.id, tweet.text, tweet.created_at)
+            @corpus.train(tweet.id, tweet.text, tweet.created_at)
           end
           options[:max_id] = tweets.last.id - 1
         end

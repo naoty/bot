@@ -12,6 +12,7 @@ module Bot
       def initialize
         @threads = []
         @bot = Actuator::Bot.new
+        @corpus = Corpus.new
         @notifier = Notifier.new
         @redis = Redis.new
       end
@@ -75,7 +76,10 @@ module Bot
       def activate_scheduled_tweets
         @threads << Thread.new do
           loop do
-            @bot.tweet("tweet test") if on_time?
+            if on_time?
+              text = @corpus.generate_text
+              @bot.tweet(text)
+            end
             sleep(TWEET_INTERVAL_IN_SECOND)
           end
         end

@@ -8,7 +8,7 @@ module Bot
         @biorythm = Biorythm.new
         @bot = Actuator::Bot.new
         @classifier = Classifier.new
-        @memory = Memory.new
+        @corpus = Corpus.new
       end
 
       def control_human_input(user_id, object)
@@ -38,7 +38,7 @@ module Bot
 
       def control_human_tweet(tweet)
         @biorythm.train(tweet.created_at)
-        @memory.save(tweet.id, tweet.text, tweet.created_at)
+        @corpus.train(tweet.id, tweet.text, tweet.created_at)
       end
 
       def control_human_favorite(tweet)

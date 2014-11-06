@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+
+import os.path
+import signal
+import sys
+
+current_dir_path = os.path.dirname(os.path.abspath(__file__))
+lib_path = os.path.normpath(os.path.join(current_dir_path, "../lib/bot/brain"))
+sys.path.append(lib_path)
+
+from synonym_server import SynonymServer
+
+socket_path = os.path.normpath(os.path.join(current_dir_path, "../synonym.sock"))
+
+def terminate_handler(signal, frame):
+    print "SIGTERM received."
+    os.remove(socket_path)
+
+signal.signal(signal.SIGTERM, terminate_handler)
+server = SynonymServer()
+server.start(socket_path)

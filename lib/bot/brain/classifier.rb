@@ -8,7 +8,7 @@ module Bot
       CATEGORY_THRESHOLD = 3
 
       def initialize
-        dictionary_path = File.expand_path("../../../assets/okura-dic", __dir__)
+        dictionary_path = Bot.root_path.join("assets/okura-dic").to_s
         @tagger = Okura::Serializer::FormatInfo.create_tagger(dictionary_path)
         @redis = Redis.new
       end

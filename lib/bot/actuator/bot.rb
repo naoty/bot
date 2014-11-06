@@ -14,7 +14,7 @@ module Bot
       end
 
       def tweet(text)
-        @notifier.notify(title: "Bot::Actuator::Bot#tweet", message: text)
+        @client.update(text)
       end
 
       def favorite(tweet)

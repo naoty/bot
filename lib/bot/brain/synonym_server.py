@@ -3,7 +3,7 @@ import os.path
 import random
 from gensim.models import word2vec
 
-class VocabularyServer:
+class SynonymServer:
     MODEL_PATH = "../../../assets/wikipedia.model"
 
     def __init__(self):
@@ -13,23 +13,23 @@ class VocabularyServer:
         self._init_word2vec_model()
         self.socket.bind(socket_path)
         self.socket.listen(5)
-        print "Now listening: %s" % socket_path
 
-        while True:
-            connection, address = self.socket.accept()
-            try:
-                while True:
-                    data = connection.recv(1024)
+        try:
+            while True:
+                connection, address = self.socket.accept()
+                data = connection.recv(1024)
+                while len(data) > 0:
                     synonym = self._get_synonym(data.decode("utf-8"))
-                    print "synonym: %s" % synonym
                     connection.send(synonym.encode("utf-8"))
-            finally:
-                connection.close()
-                os.remove(socket_path)
+                    data = connection.recv(1024)
+                else:
+                    connection.close()
+        finally:
+            os.remove(socket_path)
 
     def _init_word2vec_model(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
-        model_path = os.path.normpath(os.path.join(base_path, VocabularyServer.MODEL_PATH))
+        model_path = os.path.normpath(os.path.join(base_path, SynonymServer.MODEL_PATH))
         self.model = word2vec.Word2Vec.load(model_path)
 
     def _get_synonym(self, word):
